@@ -1,10 +1,10 @@
-# covid-api-statistics
+# Covid-API- Statistics
 
 This site shows the latest covid-19 statistics.
 
 ## Pseudo Code
 
--   ### HTML/CSS
+  ### HTML/CSS
 
 ```
 <body>
@@ -16,11 +16,11 @@ This site shows the latest covid-19 statistics.
 ```
 
     -   chart-container - contains the chart that will be dynamically updated
-    -   stats-container - contains the 4 types of data(confirmed, deaths, recovered, critical) that will be dynamically updated
+    -   stats-container - contains the 4 types of data(confirmed, deaths, recovered, critical) that will be dynamically updated per selected continent
     -   continents-container - contains the continent buttons
     -   countries-container - contains the country (links?) that will be dynamically updated
 
--   ### JavaScript
+### JavaScript
 
 ```
 continentsList = []; //list of strings with the names of the continents
@@ -81,3 +81,9 @@ function renderPage()
     -   it dynamically fills the stats container with the data of the selected continent.
     -   it dynamically fills the countries container with links, one for each country.
     -   it dynamically updates the chart with the data of the selected continent.
+
+function renderChart(covidData)
+
+- This function is called when the user clicks on a continent button
+    - it gets the covidData object of the selected continent and calls the renderChartFunction
+    it uses the chart.js library to create a chart with the data of the selected continent
