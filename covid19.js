@@ -33,12 +33,13 @@ console.log("country-continent map",countriesMap);
  async function fetchCountries(continents) {
     let urlArr=[];
     let promiseUrl=[];
-    const url='https://restcountries.herokuapp.com/api/v1/region/'
-    const proxy = 'https://api.codetabs.com/v1/proxy/?quest='
+    const url2='https://intense-mesa-62220.herokuapp.com/https://restcountries.herokuapp.com/api/v1/region/'
+    // const url='https://restcountries.herokuapp.com/api/v1/region/'
+    // const proxy = 'https://api.codetabs.com/v1/proxy/?quest='
 
     //prepare urls for each continent in an array to use with promise all
     continents.forEach((cont)=>{
-    urlArr.push(proxy+url+cont);
+    urlArr.push(url2+cont);
     })
     try{ 
     promiseUrl= urlArr.map((url) => axios.get(url));
@@ -46,7 +47,7 @@ console.log("country-continent map",countriesMap);
     return response;
     }
     catch(error){
-            console.log(error);
+            console.log("Fail to get countries API", error);
     }
 }
 /********************************************************************************************** */
@@ -145,12 +146,19 @@ async function loadCovidPerCountry(){
 */
 
 function getCovidPerContinent(continent){
-    console.log([...countriesMap]);
-    const result=[...countriesMap]
-    .filter((cont)=>{
-        cont===continent;
+    let countries=[];
+    countriesMap.forEach((value,key)=>{
+        if (value===continent) {
+            countries.push(key)
+        }
     })
-    console.log(continent);
+    // const result=countriesMap.keys();
+    
+    // result.filter((cont)=>{
+    //     cont===continent;
+    // })
+    
+    console.log("countries"+countries);
 }
 
-getCovidPerContinent('Asia');
+// getCovidPerContinent('Asia');
