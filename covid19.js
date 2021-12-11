@@ -1,15 +1,24 @@
 // global variables
+// var Chart = require('chart.js');
+
 const continents=['Asia', 'Africa', 'Oceania','Europe', 'Americas'];
-// const countriesMap= new Map();
+const stats=['Confirmed', 'Death', 'Recovered','Critical'];
+let defaultStat='Confirmed';
+let defaultCont='Asia';
 const countriesMap= [];
 const covidPerContinentMap=new Map();
-// const covidPerCountryMap=new Map();
 const covidPerCountryMap=[];
 
+const statsButtons=document.querySelector('.stats-container')
+const continentsButtons=document.querySelector('.continents-container')
+const countriesList=document.querySelector('.countries-container')
+
+
 // covid data object
-function CovidData  (countryCode, confirmed, deaths, recovered, critical){
+function CovidData  (countryCode, countryName,confirmed, deaths, recovered, critical){
     
         this.countryCode = countryCode;    
+        this.countryName = countryName;    
         this.confirmed = confirmed;
         this.deaths = deaths;
         this.recovered = recovered;
@@ -23,15 +32,112 @@ function Country (name, code,region){
     this.region=region;
 }
 
+
+  /************************************************************************************************** */
+ /*****************************************************************************************
+   * Draw Chart
+   */
+  function drawChart(countriesArr){
+  const ctx = document.getElementById('myChart').getContext('2d'); 
+
+  let countryNames= countriesArr.map((countrObj)=>{
+      return countrObj.countryName;
+  })
+  let countryData= countriesArr.map((countrObj)=>{
+      return countrObj.deaths;
+  })
+    myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: countryNames,
+        datasets: [
+          {
+            label: defaultStat,
+            backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+            data: countryData
+          }
+        ]
+      },
+      options: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'World Covid 19 Stats'
+        }
+      }
+  });
+ 
+  }
+
+  /***************************************************************************************** */
+  function drawStatsbutton(){
+    stats.forEach((stat)=>{
+        const button= document.createElement('button');
+        button.innerText=stat;
+        button.id=stat;
+        button.addEventListener('click',clickStat);
+        statsButtons.appendChild(button);
+    })
+  }
+
+   function clickStat(e){
+    defaultStat= e.target.id;
+    myChart.destroy();
+    drawChart(continentCountries);
+}
+  /***************************************************************************************** */
+function drawContbutton(){
+    continents.forEach((cont)=>{
+        const button= document.createElement('button');
+        button.innerText=cont;
+        button.id=cont;
+        button.addEventListener('click',clickContinent);
+        continentsButtons.appendChild(button);
+    })
+
+}
+async function clickContinent(e){
+    defaultCont=e.target.id;
+    const continentCountries= await getCovidPerContinent(e.target.id)
+    myChart.destroy();
+    drawChart(continentCountries);
+}
+
+/************************************************************************************************** */
+
+async function drawCountriesList(){
+    const myCountries= await getCountryPerContinent(defaultCont)
+    const select= document.createElement('select');
+     countriesList.appendChild(select);
+    myCountries.forEach((country)=>{
+        const option= document.createElement('option');
+        option.innerText=country.name;
+        option.id=country.name;
+        select.appendChild(option)
+        option.addEventListener('click',clickCountry);
+       
+    })
+
+}
+async function clickCountry(e){
+    const continentCountries= await getCovidPerContinent(e.target.id)
+    myChart.destroy();
+    drawChart(continentCountries);
+}
+
+/********************************************************************************************* */
 async function loadAll(){
     await loadCovidPerCountry();
     await loadContinents(continents);
-    // await getCountryPerContinent('Asia');
-    await getCovidPerContinent('Asia')
+     drawChart(await getCovidPerContinent(defaultCont))
+     drawContbutton();
+     drawStatsbutton();
+     drawCountriesList()
 }
 
-
-loadAll();
+window.addEventListener('load', (event) => {
+    loadAll()
+  });
 console.log("covid per country map",covidPerCountryMap);
 console.log("country-continent map",countriesMap);
 
@@ -59,17 +165,7 @@ console.log("country-continent map",countriesMap);
     }
 }
 /********************************************************************************************** */
-// async function fetchCountries(continent) {
-//     const proxy = 'https://api.codetabs.com/v1/proxy/?quest='
-//     try{
-//         const response =  await axios.get(`${proxy}https://restcountries.herokuapp.com/api/v1/region/${continent}`)
-//         console.log(response.data);
-//         return response.data;
-//     }
-//     catch(error){
-//             console.log(error);
-//     }
-// }
+
 
 /*************************************************************************************************
  * this function fetches corona data for all countries
@@ -87,24 +183,7 @@ async function fetchGlobalCoronaData() {
 
 
 /** ********************************************************************************************
- this function gets all data for each country and creates a Map for each country and continent*/
-// NOT NEEDED , KEEP FOR NOW
-// async function loadContinents(continent){
-// try{
-//         countryData=  await fetchCountries(continent);
-//         countryData.forEach((data)=>{
-//         let myCountry=new Country(data.name.common, data.cca2,data.region);
-//         countriesMap.set(myCountry,myCountry.region);
-//         });
-       
-//     }
-//     catch (error)
-//     {
-//         console.log("Failed to Load Countries", error, continent);
-//     }
-// }
-/** ********************************************************************************************
- this function gets all data for each country and creates a Map for each country and continent*/
+ this function gets all data for each country and stores it in an array of objects*/
 
 async function loadContinents(continents){
     let worldData=[];
@@ -115,7 +194,6 @@ async function loadContinents(continents){
                 for (let j=0;j<worldData[i].data.length; j++) 
                 {
                     let myCountry=new Country(worldData[i].data[j].name.common, worldData[i].data[j].cca2,worldData[i].data[j].region);
-                    // countriesMap.set(myCountry,myCountry.region);
                     countriesMap.push(myCountry);
                 }
             }
@@ -138,8 +216,7 @@ async function loadCovidPerCountry(){
     try{
         covidData=await fetchGlobalCoronaData();
         covidData.data.forEach((country)=>{
-        let countryCovidObj=new CovidData (country.code, country.latest_data.confirmed,country.latest_data.deaths,country.latest_data.recovered,country.latest_data.critical);
-        // covidPerCountryMap.set(countryCovidObj,countryCovidObj.countryCode);
+        let countryCovidObj=new CovidData (country.code,country.name, country.latest_data.confirmed,country.latest_data.deaths,country.latest_data.recovered,country.latest_data.critical);
         covidPerCountryMap.push(countryCovidObj);
         });
     }
@@ -158,13 +235,14 @@ async function getCountryPerContinent(continent){
     let countries=countriesMap.filter((country)=>{
         return (country.region===continent);
     })
-
+console.log("inside get countries",countries)
      return countries;
 }
 /***********************************************************************************************
  * this function returns Covid data for all countries per continent
  */
  async function getCovidPerContinent(continent){
+     console.log("calling covid per cont", continent);
     let codes=[];
     let temp=[];
     const  countries= await getCountryPerContinent(continent);
@@ -173,14 +251,28 @@ async function getCountryPerContinent(continent){
     })
     console.log(codes)
     let result=  covidPerCountryMap.filter((country)=>{
-         codes.forEach((code)=>{
-             if (country.countryCode===code){
-                 temp.push(country);
-             }
+        return codes.filter((code)=>{
+             if (((country.countryCode===code) ))
+            {temp.push(country)}
          })
-        
         })
 
-        console.log("result"+temp);
-         
+        temp.forEach((e)=> console.log(e.countryCode,e.confirmed));
+        return temp;    
  }
+/***********************************************************************************************
+ * this function returns Covid data per country
+ */
+   function getCovidPerCountry(country){
+     return covidPerCountryMap.find((c)=>(c.countryName===country))
+
+ }
+/***********************************************************************************************
+ * this function returns Covid stats per country
+ */
+   function getCovidStatsPerCountry(statistic){
+    
+    //  return covidPerCountryMap.covidData.keys((key)=>(key===statistic))
+
+ }
+
