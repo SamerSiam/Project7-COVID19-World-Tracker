@@ -5,13 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Covid 19 World Tracker</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="./covid19.js" defer></script>
 </head>
 <body>
-    <div class="chart-container"></div>
-    <div class="stats-container"></div>
-    <div class="continents-container"></div>
-    <div class="countries-container"></div>
+   
+        
+        <div class="chart-container">
+            <h1>Covid 19 Stats</h1> 
+            <canvas id="myChart"></canvas>
+            <div class="stats-container"></div>
+            <div class="continents-container"></div>
+        </div> 
+    
+        <div class="countries-container"></div>
+   
+    
 </body>
 </html>
