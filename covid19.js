@@ -1,8 +1,10 @@
 // global variables
 const continents=['Asia', 'Africa', 'Oceania','Europe', 'Americas'];
-const countriesMap= new Map();
+// const countriesMap= new Map();
+const countriesMap= [];
 const covidPerContinentMap=new Map();
-const covidPerCountryMap=new Map();
+// const covidPerCountryMap=new Map();
+const covidPerCountryMap=[];
 
 // covid data object
 function CovidData  (countryCode, confirmed, deaths, recovered, critical){
@@ -21,9 +23,15 @@ function Country (name, code,region){
     this.region=region;
 }
 
-loadCovidPerCountry();
-loadContinents(continents);
+async function loadAll(){
+    await loadCovidPerCountry();
+    await loadContinents(continents);
+    // await getCountryPerContinent('Asia');
+    await getCovidPerContinent('Asia')
+}
 
+
+loadAll();
 console.log("covid per country map",covidPerCountryMap);
 console.log("country-continent map",countriesMap);
 
@@ -107,7 +115,8 @@ async function loadContinents(continents){
                 for (let j=0;j<worldData[i].data.length; j++) 
                 {
                     let myCountry=new Country(worldData[i].data[j].name.common, worldData[i].data[j].cca2,worldData[i].data[j].region);
-                    countriesMap.set(myCountry,myCountry.region);
+                    // countriesMap.set(myCountry,myCountry.region);
+                    countriesMap.push(myCountry);
                 }
             }
            
@@ -130,8 +139,8 @@ async function loadCovidPerCountry(){
         covidData=await fetchGlobalCoronaData();
         covidData.data.forEach((country)=>{
         let countryCovidObj=new CovidData (country.code, country.latest_data.confirmed,country.latest_data.deaths,country.latest_data.recovered,country.latest_data.critical);
-        covidPerCountryMap.set(countryCovidObj,countryCovidObj.countryCode);
-        
+        // covidPerCountryMap.set(countryCovidObj,countryCovidObj.countryCode);
+        covidPerCountryMap.push(countryCovidObj);
         });
     }
 
@@ -142,23 +151,36 @@ async function loadCovidPerCountry(){
 
 }
 /*********************************************************************************************** 
- * this function 
+ * this function returns an array of country codes based on a continent name
 */
-
-function getCovidPerContinent(continent){
-    let countries=[];
-    countriesMap.forEach((value,key)=>{
-        if (value===continent) {
-            countries.push(key)
-        }
+async function getCountryPerContinent(continent){
+    
+    let countries=countriesMap.filter((country)=>{
+        return (country.region===continent);
     })
-    // const result=countriesMap.keys();
-    
-    // result.filter((cont)=>{
-    //     cont===continent;
-    // })
-    
-    console.log("countries"+countries);
-}
 
-// getCovidPerContinent('Asia');
+     return countries;
+}
+/***********************************************************************************************
+ * this function returns Covid data for all countries per continent
+ */
+ async function getCovidPerContinent(continent){
+    let codes=[];
+    let temp=[];
+    const  countries= await getCountryPerContinent(continent);
+    countries.forEach((country)=>{
+        codes.push(country.code)
+    })
+    console.log(codes)
+    let result=  covidPerCountryMap.filter((country)=>{
+         codes.forEach((code)=>{
+             if (country.countryCode===code){
+                 temp.push(country);
+             }
+         })
+        
+        })
+
+        console.log("result"+temp);
+         
+ }
